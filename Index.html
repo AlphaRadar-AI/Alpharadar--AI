@@ -3,68 +3,181 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>AlphaRadar AI</title>
+<title>AlphaRadar AI | Multi-Chain Token Scanner</title>
 
 <style>
+* { box-sizing: border-box; }
+
 body {
-    background: #0b1020;
-    color: white;
-    font-family: Arial, sans-serif;
+    margin: 0;
     padding: 20px;
+    background: #080d19;
+    color: #fff;
+    font-family: Arial, sans-serif;
 }
 
-h1 {
-    color: #00e5a8;
+header {
+    padding: 20px 0;
+    border-bottom: 1px solid #263149;
+}
+
+h1 { color: #00e5a8; }
+
+.subtitle { color: #9ba9c0; }
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(130px,1fr));
+    gap: 12px;
+    margin: 25px 0;
 }
 
 .card {
-    background: #171f33;
-    padding: 15px;
-    margin: 12px 0;
-    border-radius: 10px;
+    background: #141e31;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    border: 1px solid #263149;
+}
+
+.stat {
+    font-size: 23px;
+    color: #00e5a8;
+    font-weight: bold;
+}
+
+label { color: #aab3c5; }
+
+select, button {
+    padding: 12px;
+    border-radius: 7px;
+    border: none;
+    margin: 8px 5px 8px 0;
+}
+
+select {
+    background: #1b2940;
+    color: white;
 }
 
 button {
     background: #00e5a8;
-    color: #07111d;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 7px;
+    color: #06121b;
     font-weight: bold;
+    cursor: pointer;
 }
 
-a {
+button:disabled {
+    opacity: .6;
+}
+
+.token {
+    background: #141e31;
+    padding: 16px;
+    margin: 12px 0;
+    border-radius: 12px;
+    border-left: 4px solid #00e5a8;
+}
+
+.token h3 { margin-bottom: 8px; }
+
+.token p {
+    color: #aab3c5;
+    overflow-wrap: anywhere;
+}
+
+.token a {
     color: #00e5a8;
 }
 
-.small {
-    color: #aab3c5;
+.badge {
+    color: #00e5a8;
+    font-weight: bold;
 }
+
+#status {
+    color: #f5c451;
+    margin: 15px 0;
+}
+
+footer {
+    color: #718096;
+    margin-top: 35px;
+    font-size: 12px;
+}
+
 </style>
 </head>
 
 <body>
 
+<header>
 <h1>🚀 AlphaRadar AI</h1>
+<p class="subtitle">Multi-chain crypto discovery and intelligence platform.</p>
+</header>
 
-<p>Discover emerging crypto tokens and Web3 opportunities.</p>
-
-<button onclick="loadTokens()">Scan New Tokens</button>
-
-<h2>New Token Radar</h2>
-
-<div id="tokens">
-    <p class="small">Tap Scan New Tokens to begin.</p>
+<div class="stats">
+<div class="card">
+<label>Tokens Found</label>
+<div class="stat" id="total">0</div>
 </div>
 
+<div class="card">
+<label>Chains Supported</label>
+<div class="stat">3</div>
+</div>
+
+<div class="card">
+<label>Scanner Status</label>
+<div class="stat" id="scanner">OFF</div>
+</div>
+</div>
+
+<h2>🔍 Token Launch Radar</h2>
+
+<label for="chain">Select Blockchain:</label>
+
+<select id="chain">
+<option value="all">All Blockchains</option>
+<option value="solana">Solana</option>
+<option value="bsc">BNB Chain</option>
+<option value="ethereum">Ethereum</option>
+</select>
+
+<br>
+
+<button id="scanButton" onclick="loadTokens()">
+SCAN NEW TOKENS
+</button>
+
+<div id="status">Ready to scan.</div>
+
+<div id="tokens">
+<p class="subtitle">Your discovered tokens will appear here.</p>
+</div>
+
+<footer>
+<p>AlphaRadar AI © 2026</p>
+<p>Market data powered by DexScreener API.</p>
+<p>Always conduct independent research before investing.</p>
+</footer>
+
 <script>
+
+const supportedChains = ["solana", "bsc", "ethereum"];
 
 async function loadTokens() {
 
 const container = document.getElementById("tokens");
+const status = document.getElementById("status");
+const button = document.getElementById("scanButton");
 
-container.innerHTML = "Scanning blockchain data...";
+const selected = document.getElementById("chain").value;
+
+button.disabled = true;
+button.textContent = "SCANNING...";
+status.textContent = "Connecting to market data...";
+container.innerHTML = "";
 
 try {
 
@@ -72,40 +185,62 @@ const response = await fetch(
 "https://api.dexscreener.com/token-profiles/latest/v1"
 );
 
+if (!response.ok) {
+throw new Error("API request failed");
+}
+
 const data = await response.json();
 
-container.innerHTML = "";
+const filtered = data.filter(token =>
+supportedChains.includes(token.chainId) &&
+(selected === "all" || token.chainId === selected)
+);
 
-data.slice(0, 20).forEach(token => {
+document.getElementById("total").textContent = filtered.length;
+document.getElementById("scanner").textContent = "ACTIVE";
+
+if (filtered.length === 0) {
+container.innerHTML = "<p>No matching token profiles found. Try another chain.</p>";
+}
+
+filtered.slice(0, 30).forEach(token => {
 
 const card = document.createElement("div");
+card.className = "token";
 
-card.className = "card";
-
-const name = document.createElement("h3");
-name.textContent = token.chainId.toUpperCase();
+const chain = document.createElement("h3");
+chain.textContent = "🌐 " + token.chainId.toUpperCase();
 
 const address = document.createElement("p");
-address.textContent = "Token: " + token.tokenAddress;
+address.textContent = "Token address: " + token.tokenAddress;
 
 const link = document.createElement("a");
 link.href = token.url;
 link.target = "_blank";
 link.rel = "noopener noreferrer";
-link.textContent = "View Token";
+link.textContent = "View on DexScreener ↗";
 
-card.appendChild(name);
-card.appendChild(address);
-card.appendChild(link);
+const badge = document.createElement("p");
+badge.className = "badge";
+badge.textContent = "New token profile detected";
 
+card.append(chain, badge, address, link);
 container.appendChild(card);
 
 });
 
+status.textContent = "Scan completed successfully.";
+
 } catch(error) {
 
-container.textContent =
-"Unable to load tokens. Please check your internet connection and try again.";
+status.textContent = "Unable to scan. Check your internet and try again.";
+
+document.getElementById("scanner").textContent = "OFF";
+
+} finally {
+
+button.disabled = false;
+button.textContent = "SCAN NEW TOKENS";
 
 }
 
