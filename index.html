@@ -492,3 +492,59 @@ async function scanTokens() {
 
                 <h3>${escapeHTML(token.name || "Unknown Token")}
                 (${escapeHTML(token
+                              </span>
+</p>
+
+</div>
+
+`;
+
+results.appendChild(card);
+
+});
+
+message.textContent =
+"Scan completed successfully. " +
+allPairs.length + " market pairs discovered.";
+
+status.textContent = "Live market data connected.";
+
+} catch (error) {
+
+message.textContent = "Scan error: " + error.message;
+
+status.textContent = "Scanner needs attention.";
+
+results.textContent =
+"Unable to retrieve token data. Please try again.";
+
+} finally {
+
+button.disabled = false;
+
+}
+
+}
+
+function escapeHTML(value) {
+
+return String(value).replace(/[&<>"']/g, character => {
+
+const entities = {
+"&": "&amp;",
+"<": "&lt;",
+">": "&gt;",
+'"': "&quot;",
+"'": "&#39;"
+};
+
+return entities[character];
+
+});
+
+}
+
+</script>
+
+</body>
+</html>
