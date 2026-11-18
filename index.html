@@ -247,6 +247,73 @@ button.textContent = "SCAN NEW TOKENS";
 }
 
 </script>
-
+<script>  
+async function scanTokens() {  
+    const button = document.querySelector("button");  
+    const results = document.getElementById("tokenResults");  
+  
+    if (!results) {  
+        alert("Token results section not found.");  
+        return;  
+    }  
+  
+    results.innerHTML = "Scanning for new tokens...";  
+  
+    try {  
+        const response = await fetch(  
+            "https://api.dexscreener.com/token-profiles/latest/v1"  
+        );  
+  
+        if (!response.ok) throw new Error("API unavailable");  
+  
+        const tokens = await response.json();  
+  
+        const chains = {  
+            "solana": "Solana",  
+            "ethereum": "Ethereum",  
+            "bsc": "BNB Chain"  
+        };  
+  
+        const selected = document.querySelector("select");  
+        const chain = selected ? selected.value : "all";  
+  
+        const filtered = tokens.filter(token =>  
+            chain === "all" || token.chainId === chain  
+        );  
+  
+        results.innerHTML = "";  
+  
+        for (const token of filtered.slice(0, 30)) {  
+            const card = document.createElement("div");  
+  
+            card.style.padding = "15px";  
+            card.style.margin = "10px 0";  
+            card.style.background = "#172033";  
+            card.style.borderRadius = "10px";  
+  
+            const name = document.createElement("h3");  
+            name.textContent = chains[token.chainId] || token.chainId;  
+  
+            const address = document.createElement("p");  
+            address.textContent = "Address: " + token.tokenAddress;  
+  
+            const link = document.createElement("a");  
+            link.href = token.url || "#";  
+            link.textContent = "View on DexScreener";  
+            link.target = "_blank";  
+            link.rel = "noopener noreferrer";  
+  
+            card.append(name, address, link);  
+            results.appendChild(card);  
+        }  
+  
+        document.getElementById("tokenCount").textContent =  
+            filtered.length;  
+  
+    } catch (error) {  
+        results.textContent = "Scanner error: " + error.message;  
+    }  
+}  
+</script>
 </body>
 </html>
